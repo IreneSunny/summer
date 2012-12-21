@@ -1,5 +1,7 @@
 package team.restore.opreate;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -8,6 +10,8 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.io.Text;
 
 import team.restore.tool.TypeConversion;
 import team.restore.util.Signature;
@@ -18,9 +22,11 @@ public class GetWebPage {
 	/*
 	 * 从inTable取数据，实例化inTable
 	 */
-	public GetWebPage(HTable inTable) {
+	public GetWebPage(HTable inTable) throws IOException {
 		super();
 		this.inTable = inTable;
+		
+		
 	}
 	
 	/*
@@ -64,7 +70,27 @@ public class GetWebPage {
 			get.addColumn("tp".getBytes(), "t".getBytes());
 			Result r = inTable.get(get);
 			for(KeyValue kv : r.raw()){
-				version.put(kv.getTimestamp(), TypeConversion.bytes2long(kv.getValue()));
+				version.put(kv.getTimestamp(), Bytes.toLong(kv.getValue()));
+			 }
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return version;
+	}
+	/*
+	 * 获取某一天的所有版本
+	 */
+	public HashMap<Long,Long> getOneVersion(WebPage web,long time){
+		HashMap<Long,Long> version = new HashMap<Long,Long>();
+		try {
+			Get get = new Get(web.getUri().array());
+			get.addColumn("tp".getBytes(), "t".getBytes());
+			get.setTimeRange(time, time+1000*3600*24);
+			Result r = inTable.get(get);
+			for(KeyValue kv : r.raw()){
+				version.put(kv.getTimestamp(), Bytes.toLong(kv.getValue()));
 			 }
 			
 		} catch (IOException e) {
@@ -81,7 +107,7 @@ public class GetWebPage {
 	public String getConType(WebPage web){
         try{
             Get get = new Get(web.getUri().array());
-            get.addColumn("h".getBytes(), "Content-Type".getBytes());
+            get.addColumn("m".getBytes(), "ct".getBytes());
             get.setTimeStamp(web.getVersion());
             Result r = inTable.get(get);
             for(KeyValue kv : r.raw()){
@@ -99,7 +125,7 @@ public class GetWebPage {
 	public byte[] getTitle(WebPage web){
         try{
             Get get = new Get(web.getUri().array());
-            get.addColumn("tp".getBytes(), "t".getBytes());
+            get.addColumn("m".getBytes(), "t".getBytes());
             get.setTimeStamp(web.getVersion());
             Result r = inTable.get(get);
             for(KeyValue kv : r.raw()){
