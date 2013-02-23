@@ -22,33 +22,55 @@ public class MongoKeepPointDao extends MongoDao<KeepPoint> implements KeepPointD
     public MongoKeepPointDao() throws DaoException {
         super(KeepPoint.class);
 
-        collection.ensureIndex(new BasicDBObject("urlMd5", 1).append("signature", 1), "md5AndSignatureIndex", true);
+//        collection.dropIndex("md5AndSignatureIndex");
+        collection.ensureIndex(new BasicDBObject("urlMd5", 1).append("signature", 1), "md5AndSignatureIndex", false);
         collection.ensureIndex(new BasicDBObject("urlMd5", 1).append("keepTime", 1), "md5AndKeepTimeIndex", true);
     }
 
     @Override
-    public boolean existsBySignature(String url, String signature) throws DaoException {
+    public boolean existsByUrlSignature(String url, String signature) throws DaoException {
         String md5 = Signature.getMd5String(url);
 
         return count(Query.create("urlMd5", md5).and("signature", signature)) > 0;
     }
 
     @Override
-    public boolean existsByKeepTime(String url, Date keepTime) throws DaoException {
+    public boolean existsByMd5Signature(String urlMd5, String signature) throws DaoException {
+        return count(Query.create("urlMd5", urlMd5).and("signature", signature)) > 0;
+    }
+
+    @Override
+    public boolean existsByUrlKeepTime(String url, Date keepTime) throws DaoException {
         String md5 = Signature.getMd5String(url);
 
         return count(Query.create("urlMd5", md5).and("keepTime", keepTime)) > 0;
     }
 
     @Override
-    public List<KeepPoint> getList(String url, Date startDate, Date endDate) throws DaoException {
+    public boolean existsByMd5KeepTime(String urlMd5, Date keepTime) throws DaoException {
+        return count(Query.create("urlMd5", urlMd5).and("keepTime", keepTime)) > 0;
+    }
+
+    @Override
+    public KeepPoint getByUrlKeepTime(String url, Date keepTime) throws DaoException {
+        String md5 = Signature.getMd5String(url);
+        return getByMd5KeepTime(md5, keepTime);
+    }
+
+    @Override
+    public KeepPoint getByMd5KeepTime(String urlMd5, Date keepTime) throws DaoException {
+        return findOne(Query.create("urlMd5", urlMd5).and("keepTime", keepTime));
+    }
+
+    @Override
+    public List<KeepPoint> getListByUrl(String url, Date startDate, Date endDate) throws DaoException {
         String md5 = Signature.getMd5String(url);
         Query query = Query.create("urlMd5", md5).and("keepTime", startDate, Query.Condition.Type_GTE).and("keepTime", endDate, Query.Condition.Type_LTE);
         return findList(query);
     }
 
     @Override
-    public List<KeepPoint> getList(String url, String yyyyMMdd) throws DaoException {
+    public List<KeepPoint> getListByUrl(String url, String yyyyMMdd) throws DaoException {
         String md5 = Signature.getMd5String(url);
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         try {
@@ -63,7 +85,7 @@ public class MongoKeepPointDao extends MongoDao<KeepPoint> implements KeepPointD
     }
 
     @Override
-    public boolean existsOne(String url, String yyyyMMdd) throws DaoException {
+    public boolean existsOneByUrl(String url, String yyyyMMdd) throws DaoException {
         String md5 = Signature.getMd5String(url);
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         try {

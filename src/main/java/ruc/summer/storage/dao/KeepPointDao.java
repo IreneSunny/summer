@@ -18,7 +18,10 @@ public interface KeepPointDao extends BaseDao<KeepPoint> {
      * @param signature
      * @return
      */
-    boolean existsBySignature(String url, String signature) throws DaoException;
+    boolean existsByUrlSignature(String url, String signature) throws DaoException;
+
+    boolean existsByMd5Signature(String urlMd5, String signature) throws DaoException;
+
 
     /**
      * url对应的时间点有无留痕记录
@@ -27,7 +30,23 @@ public interface KeepPointDao extends BaseDao<KeepPoint> {
      * @return
      * @throws DaoException
      */
-    boolean existsByKeepTime(String url, Date keepTime) throws DaoException;
+    boolean existsByUrlKeepTime(String url, Date keepTime) throws DaoException;
+
+    boolean existsByMd5KeepTime(String urlMd5, Date keepTime) throws DaoException;
+
+    KeepPoint getByUrlKeepTime(String url, Date keepTime) throws DaoException;
+
+    KeepPoint getByMd5KeepTime(String urlMd5, Date keepTime) throws DaoException;
+
+
+    /**
+     * 在某一天是否有过留痕记录，日期为yyyyMMdd的字符串，例如20130226
+     * @param url
+     * @param yyyyMMdd
+     * @return
+     * @throws DaoException
+     */
+    boolean existsOneByUrl(String url, String yyyyMMdd) throws DaoException;
 
     /**
      * 获取起止时间之内的所有留痕点
@@ -37,7 +56,7 @@ public interface KeepPointDao extends BaseDao<KeepPoint> {
      * @return
      * @throws DaoException
      */
-    List<KeepPoint> getList(String url, Date startDate, Date endDate) throws DaoException;
+    List<KeepPoint> getListByUrl(String url, Date startDate, Date endDate) throws DaoException;
 
     /**
      * 获取某一天的所有留痕记录
@@ -46,16 +65,8 @@ public interface KeepPointDao extends BaseDao<KeepPoint> {
      * @return
      * @throws DaoException
      */
-    List<KeepPoint> getList(String url, String yyyyMMdd) throws DaoException;
+    List<KeepPoint> getListByUrl(String url, String yyyyMMdd) throws DaoException;
 
-    /**
-     * 在某一天是否有过留痕记录，日期为yyyyMMdd的字符串，例如20130226
-     * @param url
-     * @param yyyyMMdd
-     * @return
-     * @throws DaoException
-     */
-    boolean existsOne(String url, String yyyyMMdd) throws DaoException;
 
 
 }

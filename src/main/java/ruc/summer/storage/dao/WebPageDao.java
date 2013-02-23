@@ -16,7 +16,9 @@ public interface WebPageDao extends BaseDao<WebPage> {
      * @return
      * @throws ruc.summer.storage.dao.core.DaoException
      */
-    boolean existsBySignature(String url, String signature) throws DaoException;
+    boolean existsByUrlSignature(String url, String signature) throws DaoException;
+
+    boolean existsByMd5Signature(String urlMd5, String signature) throws DaoException;
 
     /**
      * 获取指定签名所对应的WebPage
@@ -25,5 +27,7 @@ public interface WebPageDao extends BaseDao<WebPage> {
      * @return
      * @throws DaoException
      */
-    WebPage getBySignature(String url, String signature) throws DaoException;
+    WebPage getByUrlSignature(String url, String signature) throws DaoException;
+
+    WebPage getByMd5Signature(String urlMd5, String signature) throws DaoException;
 }
