@@ -2,6 +2,7 @@ package ruc.summer.conf;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zhinang.conf.Configuration;
 
 public class ConfFactory {
 	private static Logger LOG = LoggerFactory.getLogger(ConfFactory.class);

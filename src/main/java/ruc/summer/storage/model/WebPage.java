@@ -1,6 +1,7 @@
 package ruc.summer.storage.model;
 
 import org.bson.types.ObjectId;
+import ruc.summer.util.GZipUtils;
 import ruc.summer.util.Signature;
 
 import java.io.UnsupportedEncodingException;
@@ -24,6 +25,8 @@ public class WebPage extends MongoObject {
     private String signature;
     private Date keepTime;
     private String title;
+    /** 是否压缩了content内容 */
+    private boolean zipped = false;
 
     /**
      * 网页的类型，如text/html, 或text/javascript，或者image/gif等
@@ -54,7 +57,15 @@ public class WebPage extends MongoObject {
         this.title = title;
         this.contentType = contentType;
         this.text = text;
-        this.content = content;
+
+        try {
+            this.zipped = true;
+            byte[] output = GZipUtils.compress(content);
+            this.content = output;
+        }catch (Exception e) {
+              this.zipped = false;
+        }
+
         this.signature = Signature.getMd5String(content);
         this.size = this.content.length;
         this.metadata = metadata;
@@ -311,4 +322,11 @@ public class WebPage extends MongoObject {
         return encoding;
     }
 
+    public boolean isZipped() {
+        return zipped;
+    }
+
+    public void setZipped(boolean zipped) {
+        this.zipped = zipped;
+    }
 }

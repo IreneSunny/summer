@@ -31,8 +31,15 @@ public class MongoClient {
     public static DB connect() throws DaoException {
         if (db == null) {
             try {
-                Mongo m = new Mongo(ConfFactory.getConf().get("mongodb.host", "server29"), ConfFactory.getConf().getInt("mongodb.port",  27017));
+                Mongo m = new Mongo(ConfFactory.getConf().get("mongodb.host", "server29"),
+                        ConfFactory.getConf().getInt("mongodb.port",  27017));
                 db = m.getDB(ConfFactory.getConf().get("mongodb.dbname", "repo"));
+                String username = ConfFactory.getConf().get("mongodb.user", "summer");
+                String password = ConfFactory.getConf().get("mongodb.password", "xiatian");
+                boolean auth = db.authenticate(username, password.toCharArray());
+                if(!auth) {
+                    throw new DaoException("MongoDB验证失败");
+                }
 
                 //设置Log为固定集合类型，仅保留一定大小的内容
 //                db.createCollection(AuditLog.Collection_Name, new BasicDBObject("capped", true).append("size", 100000).append("max", 50000));

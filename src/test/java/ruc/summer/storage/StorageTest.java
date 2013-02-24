@@ -22,6 +22,7 @@ public class StorageTest {
     public void testSave() throws Exception {
         HttpClientAgent agent = new HttpClientAgent(new Configuration());
         UrlResponse response = agent.execute(url);
+
         Map<String, String> map = new HashMap<String, String>();
         for(String key: response.getHeaders().names()) {
             map.put(key, response.getHeader(key));
