@@ -15,6 +15,19 @@ import java.util.*;
  * Date: 2/23/13 4:16 PM
  */
 public class Storage {
+    /**
+     * 问题：要不要不要过于频繁的保留一个网页的多个版本？比如一个网站至少间隔1天方可以加入一条新记录
+     *
+     * @param url
+     * @param fetchTime
+     * @param metadata
+     * @param contentType
+     * @param title
+     * @param text
+     * @param content
+     * @param agent
+     * @return
+     */
     public static Result save(String url, Date fetchTime, Map<String, String> metadata, String contentType, String title, String text, byte[] content, String agent) {
         try{
             String md5 = Signature.getMd5String(url);
@@ -61,7 +74,7 @@ public class Storage {
         return list;
     }
 
-    public static WebPage getWebPage(String url, Date keepTime) throws DaoException{
+    public static WebPage getWebPage(String url, Date keepTime, boolean nearby) throws DaoException{
 
         KeepPointDao keepPointDao = DaoFactory.getKeepPointDao();
         WebPageDao webPageDao = DaoFactory.getWebPageDao();
@@ -69,7 +82,14 @@ public class Storage {
         String urlMd5 = Signature.getMd5String(url);
         KeepPoint point = keepPointDao.getByMd5KeepTime(urlMd5, keepTime);
         if(point == null) {
-            throw new DaoException("该时间没有保留网页内容！");
+            if(nearby) {
+                point = keepPointDao.getByMd5KeepTime(urlMd5, keepTime, nearby);
+                if(point == null) {
+                    throw new DaoException("该时间没有保留网页内容！");
+                }
+            } else {
+                throw new DaoException("该时间没有保留网页内容！");
+            }
         }
 
         WebPage page = webPageDao.getByMd5Signature(urlMd5, point.getSignature());

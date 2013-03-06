@@ -15,7 +15,23 @@ public class Injector {
             }
         }
 
-        queue.rpush("http://www.ruc.edu.cn/");
-        queue.rpush("http://www.sohu.com/");
+        queue.lpush("http://bbs.tianya.cn/");
+        queue.lpush("http://www.ruc.edu.cn/");
+        queue.lpush("http://www.sohu.com/");
+        queue.rpush("http://www.people.com.cn/");
+        queue.rpush("http://www.xinhuanet.com/");
+        queue.rpush("http://www.huanqiu.com/");
+        queue.rpush("http://www.gmw.cn/");
+        queue.rpush("http://www.xinmin.cn/");
+        queue.rpush("http://www.shanghai.gov.cn/");
+        queue.rpush("http://www.gov.hk/");
+        queue.rpush("http://www.gd.gov.cn/");
+        queue.rpush("http://www.beijing.gov.cn/");
+        queue.rpush("http://www.cq.gov.cn/");
+        queue.rpush("http://www.henan.gov.cn/");
+        queue.rpush("http://www.qq.com/");
+        queue.rpush("http://www.sina.com.cn/");
+        queue.rpush("http://www.163.com/");
+        queue.rpush("http://club.china.com/");
     }
 }

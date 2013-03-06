@@ -5,7 +5,9 @@ import org.zhinang.conf.Configuration;
 import org.zhinang.protocol.http.HttpClientAgent;
 import org.zhinang.protocol.http.UrlResponse;
 import ruc.summer.storage.model.WebPage;
+import ruc.summer.util.GZipUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,7 @@ public class StorageTest {
 
     @Test
     public void testSave() throws Exception {
+        url = "http://news.ifeng.com/";
         HttpClientAgent agent = new HttpClientAgent(new Configuration());
         UrlResponse response = agent.execute(url);
 
@@ -27,9 +30,12 @@ public class StorageTest {
         for(String key: response.getHeaders().names()) {
             map.put(key, response.getHeader(key));
         }
-        Result result = Storage.save(url, new Date(), map, response.getContentType(), "中国人民大学", "", response.getContent(), "xiatian");
-
-        System.out.println(result);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date d = df.parse("2013-2-8 19:30:05");
+        System.out.println(d);
+        Result result = Storage.save(url, d, map, response.getContentType(), "凤凰网", "", response.getContent(), "xiatian");
+//
+//        System.out.println(result);
     }
 
     @Test
@@ -43,10 +49,15 @@ public class StorageTest {
 
     @Test
     public void testGetWebPage() throws Exception {
+        url = "http://www.ruc.edu.cn/archives/21325";
         List<Date> list = Storage.getKeepTimeList(url);
         for (Date d : list) {
-            WebPage page = Storage.getWebPage(url, d);
-            System.out.println(new String(page.getContent(), page.getEncoding()));
+            WebPage page = Storage.getWebPage(url, d, false);
+            byte[] content = page.getContent();
+            if (page.isZipped()) {
+                content = GZipUtils.decompress(content);
+            }
+            System.out.println(new String(content, page.getEncoding()));
         }
     }
 }

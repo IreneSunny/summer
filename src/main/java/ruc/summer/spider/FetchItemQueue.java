@@ -9,9 +9,11 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import ruc.summer.storage.dao.core.DaoException;
 import ruc.summer.storage.dao.helper.RedisClient;
+import ruc.summer.util.Signature;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This class handles FetchItems which come from the same host ID (be it a
@@ -28,6 +30,8 @@ public class FetchItemQueue {
      * 爬虫在Redis中存放的正准备抓取的链接所存放的队列的主键名称， 队列自左到右按时间存放待抓取的CrawlDatum，抓取时，从左侧依次弹出抓取
      */
     private static final String Spider_ListKey_CrawlDatum = "spider:list:crawldatum";
+
+    private static final String Spider_SetKey_CrawlDatumMd5 = RedisClient.normalizeKey("spider:set:crawldatum:md5");
 
     /**
      * 正在等待处理的链接集合
@@ -52,13 +56,35 @@ public class FetchItemQueue {
         JedisPool pool = RedisClient.getPool();
         Jedis jedis = pool.getResource();
 
-        String xml_string = SerialUtils.toXML(datum);
-        // 加入爬行队列
-        jedis.lpush(RedisClient.normalizeKey(Spider_ListKey_CrawlDatum), xml_string);
-        // 加入爬行队列集合，用于快速判断一个URL是否已经在爬行队列之中
-        jedis.sadd(RedisClient.normalizeKey(Spider_SetKey_WaitingLink), datum.getUrl());
+        String md5 = Signature.getMd5String(datum.getUrl());
+        boolean addItem = false;
+        if (!jedis.sismember(Spider_SetKey_CrawlDatumMd5, md5)) {
+            addItem = true;
+
+            //记录该主键到抓取队列中，以避免重复抓取
+            jedis.sadd(Spider_SetKey_CrawlDatumMd5, md5);
+        } else {
+            //如果已经存在，则按照一定概率保留
+            int random = new Random().nextInt(100);
+            if(random < 3) {
+                addItem = true;
+            }
+        }
+
+        if(addItem) {
+            String xml_string = SerialUtils.toXML(datum);
+            // 加入爬行队列
+            jedis.lpush(RedisClient.normalizeKey(Spider_ListKey_CrawlDatum), xml_string);
+            // 加入爬行队列集合，用于快速判断一个URL是否已经在爬行队列之中
+            jedis.sadd(RedisClient.normalizeKey(Spider_SetKey_WaitingLink), datum.getUrl());
+        }
 
         pool.returnResource(jedis);
+    }
+
+    public void lpush(String homepage) {
+        CrawlDatum datum = new CrawlDatum(homepage, null, 1);
+        lpush(datum);
     }
 
     public void rpush(String homepage) {
@@ -76,12 +102,29 @@ public class FetchItemQueue {
         JedisPool pool = RedisClient.getPool();
         Jedis jedis = pool.getResource();
 
-        String xml_string = SerialUtils.toXML(datum);
-        // 加入爬行队列
-        jedis.rpush(RedisClient.normalizeKey(Spider_ListKey_CrawlDatum), xml_string);
+        String md5 = Signature.getMd5String(datum.getUrl());
+        boolean addItem = false;
+        if (!jedis.sismember(Spider_SetKey_CrawlDatumMd5, md5)) {
+            addItem = true;
 
-        // 加入爬行队列集合，用于快速判断一个URL是否已经在爬行队列之中
-        jedis.sadd(RedisClient.normalizeKey(Spider_SetKey_WaitingLink), datum.getUrl());
+            //记录该主键到抓取队列中，以避免重复抓取
+            jedis.sadd(Spider_SetKey_CrawlDatumMd5, md5);
+        } else {
+            //如果已经存在，则按照一定概率保留
+            int random = new Random().nextInt(100);
+            if(random < 3) {
+                addItem = true;
+            }
+        }
+
+        if(addItem) {
+            String xml_string = SerialUtils.toXML(datum);
+            // 加入爬行队列
+            jedis.rpush(RedisClient.normalizeKey(Spider_ListKey_CrawlDatum), xml_string);
+
+            // 加入爬行队列集合，用于快速判断一个URL是否已经在爬行队列之中
+            jedis.sadd(RedisClient.normalizeKey(Spider_SetKey_WaitingLink), datum.getUrl());
+        }
 
         pool.returnResource(jedis);
     }
@@ -122,6 +165,8 @@ public class FetchItemQueue {
 
         // 从正在抓取的集合中删除该条目
         jedis.srem(RedisClient.normalizeKey(Spider_SetKey_FetchingLink), url);
+
+        jedis.srem(Spider_SetKey_CrawlDatumMd5, Signature.getMd5String(url));
 
         pool.returnResource(jedis);
     }

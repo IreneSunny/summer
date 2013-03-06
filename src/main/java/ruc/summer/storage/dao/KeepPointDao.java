@@ -38,6 +38,16 @@ public interface KeepPointDao extends BaseDao<KeepPoint> {
 
     KeepPoint getByMd5KeepTime(String urlMd5, Date keepTime) throws DaoException;
 
+    /**
+     * 如果当前时间点没有，则向后继续寻找最近的一个记录
+     * @param urlMd5
+     * @param keepTime
+     * @param nearby
+     * @return
+     * @throws DaoException
+     */
+    KeepPoint getByMd5KeepTime(String urlMd5, Date keepTime, boolean nearby) throws DaoException;
+
 
     /**
      * 在某一天是否有过留痕记录，日期为yyyyMMdd的字符串，例如20130226

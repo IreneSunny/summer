@@ -220,14 +220,13 @@ public class Fetcher {
 
         String usage = "Usage: Fetcher <segment> [-threads n] [-jms]";
 
-        int threads = 5;
+        int threads = 25;
 
-        for (int i = 1; i < args.length; i++) { // parse command line
+        for (int i = 0; i < args.length; i++) { // parse command line
             if (args[i].equals("-threads")) { // found -threads option
                 threads = Integer.parseInt(args[++i]);
                 continue;
             }
-
         }
 
         Fetcher fetcher = new Fetcher(); // make a Fetcher

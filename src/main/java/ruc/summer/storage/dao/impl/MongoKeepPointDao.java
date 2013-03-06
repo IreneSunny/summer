@@ -63,6 +63,12 @@ public class MongoKeepPointDao extends MongoDao<KeepPoint> implements KeepPointD
     }
 
     @Override
+    public KeepPoint getByMd5KeepTime(String urlMd5, Date keepTime, boolean nearby) throws DaoException {
+        Query query = Query.create("urlMd5", urlMd5).and("keepTime", keepTime, Query.Condition.Type_GTE);
+        return findOne(query);
+    }
+
+    @Override
     public List<KeepPoint> getListByUrl(String url, Date startDate, Date endDate) throws DaoException {
         String md5 = Signature.getMd5String(url);
         Query query = Query.create("urlMd5", md5).and("keepTime", startDate, Query.Condition.Type_GTE).and("keepTime", endDate, Query.Condition.Type_LTE);

@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import ruc.summer.conf.ConfFactory;
 import ruc.summer.storage.dao.core.DaoException;
 import ruc.summer.util.Signature;
+import sun.util.LocaleServiceProviderPool;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class MongoClient {
                 String password = ConfFactory.getConf().get("mongodb.password", "xiatian");
                 boolean auth = db.authenticate(username, password.toCharArray());
                 if(!auth) {
-                    throw new DaoException("MongoDB验证失败");
+                    System.out.println("MongoDB验证失败");
                 }
 
                 //设置Log为固定集合类型，仅保留一定大小的内容
